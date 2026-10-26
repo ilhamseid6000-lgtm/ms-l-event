@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSL - لوحة التحكم والتنزيل</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f4f6f5;
+            color: #1b4332;
+        }
+        .card {
+            background: white;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #1b4332;
+        }
+        p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .btn {
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background-color: #1b4332;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>لوحة إدارية - MSL 📊</h2>
+        <p>اضغطي على الزر أدناه لتنزيل قائمة جميع الطلاب المسجلين كملف Excel / CSV:</p>
+        <button class="btn" onclick="downloadExcel()">📥 تنزيل قائمة الطلاب (Excel / CSV)</button>
+    </div>
+
+    <script>
+        // ⚠️ ضعِي اسم حسابك واسم المستودع هنا مثل ملف index.html
+        const GITHUB_REPO = "username/repo-name"; 
+        const FILE_PATH = "students.json";
+
+        async function downloadExcel() {
+            try {
+                // جلب ملف البيانات من GitHub
+                const response = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${FILE_PATH}?t=${new Date().getTime()}`);
+                
+                if (!response.ok) {
+                    alert("لم يتم العثور على ملف البيانات students.json أو لا يوجد طلاب مسجلون بعد.");
+                    return;
+                }
+                
+                const students = await response.json();
+
+                if (!students || students.length === 0) {
+                    alert("لا يوجد طلاب مسجلون بعد!");
+                    return;
+                }
+
+                // تجهيز عناوين الأعمدة مع دعم اللغة العربية (BOM)
+                let csvContent = "\uFEFFالاسم الكامل,الجنس,الكلية,التخصص,السنة الدراسية,الهاتف,تيليجرام,تاريخ التسجيل\n";
+                
+                students.forEach(s => {
+                    csvContent += `"${s.fullName || ''}","${s.gender || ''}","${s.college || ''}","${s.department || ''}","${s.yearOfStudy || ''}","${s.phoneNumber || ''}","${s.telegram || ''}","${s.registeredAt || ''}"\n`;
+                });
+
+                // إنشاء وتحميل الملف
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'قائمة_الطلاب_MSL.csv';
+                a.click();
+            } catch (err) {
+                console.error(err);
+                alert("حدث خطأ أثناء جلب البيانات.");
+            }
+        }
+    </script>
+</body>
+</html>
